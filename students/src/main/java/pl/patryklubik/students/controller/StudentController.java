@@ -2,6 +2,7 @@ package pl.patryklubik.students.controller;
 
 import org.springframework.http.ResponseEntity;
 import pl.patryklubik.students.service.StudentService;
+import pl.patryklubik.students.service.StudentServiceImpl;
 import pl.patryklubik.students.model.Student;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,13 +19,13 @@ public class StudentController {
 
     private final StudentService studentService;
 
-    public StudentController(StudentService studentService) {
+    public StudentController(StudentServiceImpl studentService) {
         this.studentService = studentService;
     }
 
-    @GetMapping()
-    ResponseEntity<List<Student>> getStudents() {
-        return studentService.getStudents();
+    @GetMapping
+    ResponseEntity<List<Student>> getStudents(@RequestParam(required = false) Student.Status status) {
+        return studentService.getStudents(status);
     }
 
     @GetMapping("/{id}")
