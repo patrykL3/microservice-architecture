@@ -8,7 +8,7 @@ import javax.validation.constraints.*;
  * Create by Patryk Łubik on 25.07.2021.
  */
 
-@Entity
+@Entity (name= "students")
 public class Student {
 
     @Id
