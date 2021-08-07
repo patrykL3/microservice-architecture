@@ -10,5 +10,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     Optional<Student> findById(Long id);
     List<Student> findAll();
+    List<Student> findAllByStatus(Student.Status status);
     Student save(Student entity);
+    boolean existsByEmail(String username);
 }
