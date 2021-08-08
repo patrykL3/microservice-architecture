@@ -25,17 +25,33 @@ public class CourseController {
     }
 
     @GetMapping
-    ResponseEntity<List<Course>> getCourses() {
-        return courseService.getCourses();
+    ResponseEntity<List<Course>> getCourses(@RequestParam(required = false) Course.Status status) {
+        return courseService.getCourses(status);
     }
 
-    @GetMapping("/{code}")
-    ResponseEntity<Course> getStudent(@PathVariable String code) {
-        return courseService.getCourse(code);
+    @GetMapping("/{id}")
+    ResponseEntity<Course> getCourse(@PathVariable Long id) {
+        return courseService.getCourse(id);
     }
 
     @PostMapping
-    ResponseEntity<Course> addStudent(@RequestBody @Valid Course toCreate) {
+    ResponseEntity<Course> addCourse(@RequestBody @Valid Course toCreate) {
         return courseService.addCourse(toCreate);
+    }
+
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+        return courseService.deleteCourse(id);
+    }
+
+    @PutMapping("/{id}")
+    ResponseEntity<Course> putCourse(@PathVariable Long id, @Valid @RequestBody Course course) {
+        return courseService.putCourse(id, course);
+    }
+
+    @PatchMapping("/{id}")
+    ResponseEntity<Course> patchStudent(@PathVariable Long id, @RequestBody Course course) {
+        return courseService.patchCourse(id, course);
     }
 }

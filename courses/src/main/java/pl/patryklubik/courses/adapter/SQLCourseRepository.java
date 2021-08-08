@@ -10,5 +10,5 @@ import pl.patryklubik.courses.model.CourseRepository;
  * Create by Patryk Łubik on 07.08.2021.
  */
 @Repository
-interface SQLCourseRepository extends CourseRepository, JpaRepository<Course, String> {
+interface SQLCourseRepository extends CourseRepository, JpaRepository<Course, Long> {
 }

@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 public class Course {
 
     @Id
-    private String code;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @NotBlank
     private String name;
     private String description;
@@ -28,12 +29,22 @@ public class Course {
     @Min(0)
     private Long participantsNumber;
 
-    public String getCode() {
-        return code;
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private Status status;
+
+    public enum Status {
+        ACTIVE,
+        INACTIVE,
+        FULL
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -82,5 +93,13 @@ public class Course {
 
     public void setParticipantsNumber(Long participantsNumber) {
         this.participantsNumber = participantsNumber;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }
