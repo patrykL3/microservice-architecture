@@ -1,19 +1,24 @@
 package pl.patryklubik.courses.model;
 
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Create by Patryk Łubik on 07.08.2021.
  */
 
-@Entity (name= "courses")
+
+@Document
 public class Course {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String code;
     @NotBlank
     private String name;
     private String description;
@@ -29,9 +34,10 @@ public class Course {
     @Min(0)
     private Long participantsNumber;
 
-    @Enumerated(EnumType.STRING)
     @NotNull
     private Status status;
+
+    private List<CourseMember> courseMembers = new ArrayList<>();
 
     public enum Status {
         ACTIVE,
@@ -39,12 +45,20 @@ public class Course {
         FULL
     }
 
-    public Long getId() {
-        return id;
+    public List<CourseMember> getCourseMembers() {
+        return courseMembers;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setCourseMembers(List<CourseMember> courseMembers) {
+        this.courseMembers = courseMembers;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getName() {

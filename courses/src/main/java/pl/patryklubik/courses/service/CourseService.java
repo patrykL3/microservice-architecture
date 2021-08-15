@@ -3,8 +3,10 @@ package pl.patryklubik.courses.service;
 
 import org.springframework.http.ResponseEntity;
 import pl.patryklubik.courses.model.Course;
+import pl.patryklubik.courses.model.CourseMember;
 
 import java.util.List;
+
 
 /**
  * Create by Patryk Łubik on 07.08.2021.
@@ -14,13 +16,17 @@ public interface CourseService {
 
     ResponseEntity<List<Course>> getCourses(Course.Status status);
 
-    ResponseEntity<Course> getCourse(Long id);
+    ResponseEntity<Course> getCourse(String code);
 
     ResponseEntity<Course> addCourse(Course course);
 
-    ResponseEntity<?> deleteCourse(Long id);
+    ResponseEntity<?> deleteCourse(String code);
 
-    ResponseEntity<Course> putCourse(Long id, Course course);
+    ResponseEntity<Course> putCourse(String code, Course course);
 
-    ResponseEntity<Course> patchCourse(Long id, Course course);
+    ResponseEntity<Course> patchCourse(String code, Course course);
+
+    ResponseEntity<List<CourseMember>> getCourseMembers(String code);
+
+    ResponseEntity<Course> addCourseMember(Long newMemberId, String code);
 }

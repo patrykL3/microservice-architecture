@@ -4,6 +4,7 @@ package pl.patryklubik.courses.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.patryklubik.courses.model.Course;
+import pl.patryklubik.courses.model.CourseMember;
 import pl.patryklubik.courses.service.CourseService;
 
 import javax.validation.Valid;
@@ -29,9 +30,14 @@ public class CourseController {
         return courseService.getCourses(status);
     }
 
-    @GetMapping("/{id}")
-    ResponseEntity<Course> getCourse(@PathVariable Long id) {
-        return courseService.getCourse(id);
+    @GetMapping("/{code}")
+    ResponseEntity<Course> getCourse(@PathVariable String code) {
+        return courseService.getCourse(code);
+    }
+
+    @GetMapping("/{courseCode}/members")
+    ResponseEntity<List<CourseMember>> getCourseMembers(@PathVariable String courseCode) {
+        return courseService.getCourseMembers(courseCode);
     }
 
     @PostMapping
@@ -39,19 +45,23 @@ public class CourseController {
         return courseService.addCourse(toCreate);
     }
 
-
-    @DeleteMapping("/{id}")
-    ResponseEntity<?> deleteCourse(@PathVariable Long id) {
-        return courseService.deleteCourse(id);
+    @PostMapping("/{courseCode}/member/{newMemberId}")
+    ResponseEntity<Course> addCourseMember(@PathVariable @Valid Long newMemberId, @PathVariable @Valid String courseCode) {
+        return courseService.addCourseMember(newMemberId, courseCode);
     }
 
-    @PutMapping("/{id}")
-    ResponseEntity<Course> putCourse(@PathVariable Long id, @Valid @RequestBody Course course) {
-        return courseService.putCourse(id, course);
+    @DeleteMapping("/{code}")
+    ResponseEntity<?> deleteCourse(@PathVariable String code) {
+        return courseService.deleteCourse(code);
     }
 
-    @PatchMapping("/{id}")
-    ResponseEntity<Course> patchStudent(@PathVariable Long id, @RequestBody Course course) {
-        return courseService.patchCourse(id, course);
+    @PutMapping("/{code}")
+    ResponseEntity<Course> putCourse(@PathVariable String code, @Valid @RequestBody Course course) {
+        return courseService.putCourse(code, course);
+    }
+
+    @PatchMapping("/{code}")
+    ResponseEntity<Course> patchStudent(@PathVariable String code, @RequestBody Course course) {
+        return courseService.patchCourse(code, course);
     }
 }

@@ -7,10 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ResponseStatusException;
 import pl.patryklubik.courses.model.Course;
-import pl.patryklubik.courses.model.CourseRepository;
+import pl.patryklubik.courses.model.CourseMember;
+import pl.patryklubik.courses.repository.CourseRepository;
+import pl.patryklubik.courses.model.dto.StudentDto;
 
 import java.net.URI;
 import java.util.List;
+
 
 /**
  * Create by Patryk Łubik on 07.08.2021.
@@ -20,9 +23,11 @@ import java.util.List;
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
+    private final StudentServiceClient studentServiceClient;
 
-    public CourseServiceImpl(CourseRepository courseRepository) {
+    public CourseServiceImpl(CourseRepository courseRepository, StudentServiceClient studentServiceClient) {
         this.courseRepository = courseRepository;
+        this.studentServiceClient = studentServiceClient;
     }
 
 
@@ -33,10 +38,16 @@ public class CourseServiceImpl implements CourseService {
         return ResponseEntity.ok(courseRepository.findAll());
     }
 
-    public ResponseEntity<Course> getCourse(Long id) {
-        return courseRepository.findById(id).map(ResponseEntity::ok)
+    public ResponseEntity<Course> getCourse(String code) {
+        return courseRepository.findById(code).map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    public ResponseEntity<List<CourseMember>> getCourseMembers(String code) {
+        return courseRepository.findById(code).map(Course::getCourseMembers).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 
     public ResponseEntity<Course> addCourse(Course toCreate) {
 
@@ -44,23 +55,55 @@ public class CourseServiceImpl implements CourseService {
         validateCourseNameExists(toCreate.getName());
 
         Course result = courseRepository.save(toCreate);
-        return ResponseEntity.created(URI.create("/" + result.getId())).body(result);
+        return ResponseEntity.created(URI.create("/" + result.getCode())).body(result);
     }
 
-    public ResponseEntity<?> deleteCourse(Long id) {
-        return courseRepository.findById(id)
+    public ResponseEntity<Course> addCourseMember(Long newMemberId, String code) {
+
+          return courseRepository.findById(code).map(course -> {
+            validateCourseStatus(course);
+            StudentDto student = studentServiceClient.getStudentById(newMemberId);
+            CourseMember courseMember = new CourseMember(student.getEmail());
+            validateCourseMembersIsEnrolled(course, courseMember);
+
+            course.getCourseMembers().add(courseMember);
+            course.setParticipantsNumber(course.getParticipantsNumber() + 1);
+            if(course.getParticipantsLimit() == course.getParticipantsNumber()) {
+                course.setStatus(Course.Status.FULL);
+            }
+            return ResponseEntity.ok().body(courseRepository.save(course));
+
+         }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+
+    private void validateCourseStatus(Course course) {
+        if(course.getStatus() != Course.Status.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course status is not ACTIVE");
+        }
+    }
+
+    private void validateCourseMembersIsEnrolled(Course course, CourseMember courseMemberToAdd) {
+        if(course.getCourseMembers().contains(courseMemberToAdd)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course member is already enrolled");
+        }
+    }
+
+    public ResponseEntity<?> deleteCourse(String code) {
+        return courseRepository.findById(code)
                 .map(course -> {
                     course.setStatus(Course.Status.INACTIVE);
                     courseRepository.save(course);
+                    courseRepository.deleteById(code);
                     return ResponseEntity.ok().build();
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public ResponseEntity<Course> putCourse(Long id, Course course) {
+    public ResponseEntity<Course> putCourse(String code, Course course) {
 
         validateCourseDataIsCorrect(course);
 
-        return courseRepository.findById(id)
+        return courseRepository.findById(code)
                 .map(courseFromDb -> {
                     if (!courseFromDb.getName().equals(course.getName())) {
                         validateCourseNameExists(course.getName());
@@ -77,11 +120,11 @@ public class CourseServiceImpl implements CourseService {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public ResponseEntity<Course> patchCourse(Long id, Course course) {
+    public ResponseEntity<Course> patchCourse(String code, Course course) {
 
         validateCourseDataIsCorrect(course);
 
-        return courseRepository.findById(id)
+        return courseRepository.findById(code)
                 .map(courseFromDb -> {
                     if (!ObjectUtils.isEmpty(course.getDescription())) {
                         courseFromDb.setDescription(course.getDescription());
@@ -102,6 +145,7 @@ public class CourseServiceImpl implements CourseService {
                     return ResponseEntity.ok().body(courseRepository.save(courseFromDb));
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     private void validateCourseNameExists(String name) {
         if(courseRepository.existsByName(name)) {
