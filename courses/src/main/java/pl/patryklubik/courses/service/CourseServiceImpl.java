@@ -51,10 +51,11 @@ public class CourseServiceImpl implements CourseService {
 
     public ResponseEntity<Course> addCourse(Course toCreate) {
 
-        validateCourseDataIsCorrect(toCreate);
-        validateCourseNameExists(toCreate.getName());
-
+        toCreate.validateCourse();
+        validateCourseNameExistsInDatabase(toCreate.getName());
+        toCreate.validateCourse();
         Course result = courseRepository.save(toCreate);
+
         return ResponseEntity.created(URI.create("/" + result.getCode())).body(result);
     }
 
@@ -101,12 +102,12 @@ public class CourseServiceImpl implements CourseService {
 
     public ResponseEntity<Course> putCourse(String code, Course course) {
 
-        validateCourseDataIsCorrect(course);
+        course.validateCourse();
 
         return courseRepository.findById(code)
                 .map(courseFromDb -> {
                     if (!courseFromDb.getName().equals(course.getName())) {
-                        validateCourseNameExists(course.getName());
+                        validateCourseNameExistsInDatabase(course.getName());
                     }
                     courseFromDb.setName(course.getName());
                     courseFromDb.setDescription(course.getDescription());
@@ -122,7 +123,7 @@ public class CourseServiceImpl implements CourseService {
 
     public ResponseEntity<Course> patchCourse(String code, Course course) {
 
-        validateCourseDataIsCorrect(course);
+        course.validateCourse();
 
         return courseRepository.findById(code)
                 .map(courseFromDb -> {
@@ -147,21 +148,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
 
-    private void validateCourseNameExists(String name) {
+    private void validateCourseNameExistsInDatabase(String name) {
         if(courseRepository.existsByName(name)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Course name is taken");
-        }
-    }
-
-    private void validateCourseDataIsCorrect(Course course) {
-        if((course.getStartDate()).isAfter(course.getEndDate())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date should not be after end date");
-        }
-        if(course.getParticipantsNumber() > course.getParticipantsLimit()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Participants number should not exceed than participants limit");
-        }
-        if(course.getStatus() == Course.Status.FULL && course.getParticipantsNumber() < course.getParticipantsLimit()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Participants number shows that course is not FULL");
         }
     }
 }

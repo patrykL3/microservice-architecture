@@ -2,6 +2,8 @@ package pl.patryklubik.courses.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
@@ -115,5 +117,30 @@ public class Course {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public void validateCourse() {
+        validateCourseDate();
+        validateParticipantsLimit();
+        validateStatus();
+    }
+
+    private void validateCourseDate() {
+        if(startDate.isAfter(endDate)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date should not be after end date");
+        }
+    }
+
+    private void validateParticipantsLimit() {
+        if(participantsNumber > participantsLimit) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Participants number should not exceed than participants limit");
+        }
+
+    }
+
+    private void validateStatus() {
+        if(status == Course.Status.FULL && participantsNumber < participantsLimit) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Participants number shows that course is not FULL");
+        }
     }
 }
