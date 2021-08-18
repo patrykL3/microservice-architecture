@@ -33,6 +33,11 @@ public class StudentController {
         return studentService.getStudent(id);
     }
 
+    @PostMapping("/emails")
+    ResponseEntity<List<Student>> getStudentsByEmails(@RequestBody List<String> emails) {
+        return studentService.getStudentsByEmails(emails);
+    }
+
     @PostMapping
     ResponseEntity<Student> addStudent(@RequestBody @Valid Student toCreate) {
         return studentService.addStudent(toCreate);

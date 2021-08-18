@@ -3,7 +3,7 @@ package pl.patryklubik.courses.service;
 
 import org.springframework.http.ResponseEntity;
 import pl.patryklubik.courses.model.Course;
-import pl.patryklubik.courses.model.CourseMember;
+import pl.patryklubik.courses.model.dto.StudentDto;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public interface CourseService {
 
     ResponseEntity<Course> patchCourse(String code, Course course);
 
-    ResponseEntity<List<CourseMember>> getCourseMembers(String code);
+    ResponseEntity<List<StudentDto>> getCourseMembers(String code);
 
     ResponseEntity<Course> addCourseMember(Long newMemberId, String code);
 }

@@ -11,8 +11,10 @@ import pl.patryklubik.courses.model.CourseMember;
 import pl.patryklubik.courses.repository.CourseRepository;
 import pl.patryklubik.courses.model.dto.StudentDto;
 
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -43,9 +45,17 @@ public class CourseServiceImpl implements CourseService {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public ResponseEntity<List<CourseMember>> getCourseMembers(String code) {
-        return courseRepository.findById(code).map(Course::getCourseMembers).map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<List<StudentDto>> getCourseMembers(String code) {
+
+        return courseRepository.findById(code).map(course -> {
+            List<@NotNull String> emailsMembers = getCourseMembersEmails(course);
+            return ResponseEntity.ok().body(studentServiceClient.getStudentsByEmails(emailsMembers));
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private List<@NotNull String> getCourseMembersEmails(Course course) {
+        return course.getCourseMembers().stream()
+                .map(CourseMember::getEmail).collect(Collectors.toList());
     }
 
 

@@ -24,4 +24,5 @@ public interface StudentService {
 
     ResponseEntity<Student> patchStudent(Long id, Student student);
 
+    ResponseEntity<List<Student>> getStudentsByEmails(List<String> emails);
 }

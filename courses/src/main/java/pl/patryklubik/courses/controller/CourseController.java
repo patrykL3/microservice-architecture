@@ -4,7 +4,7 @@ package pl.patryklubik.courses.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.patryklubik.courses.model.Course;
-import pl.patryklubik.courses.model.CourseMember;
+import pl.patryklubik.courses.model.dto.StudentDto;
 import pl.patryklubik.courses.service.CourseService;
 
 import javax.validation.Valid;
@@ -36,7 +36,7 @@ public class CourseController {
     }
 
     @GetMapping("/{courseCode}/members")
-    ResponseEntity<List<CourseMember>> getCourseMembers(@PathVariable String courseCode) {
+    ResponseEntity<List<StudentDto>> getCourseMembers(@PathVariable String courseCode) {
         return courseService.getCourseMembers(courseCode);
     }
 

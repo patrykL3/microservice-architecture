@@ -92,6 +92,12 @@ public class StudentServiceImpl implements StudentService {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    public ResponseEntity<List<Student>> getStudentsByEmails(List<String> emails) {
+
+        return studentRepository.findAllByEmailIn(emails).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     private void validateStudentEmailExists(Student student) {
         if(studentRepository.existsByEmail(student.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is taken");
