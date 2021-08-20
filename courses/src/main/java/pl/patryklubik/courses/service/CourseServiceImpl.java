@@ -1,12 +1,14 @@
 package pl.patryklubik.courses.service;
 
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import pl.patryklubik.courses.model.Course;
 import pl.patryklubik.courses.model.CourseMember;
+import pl.patryklubik.courses.model.dto.NotificationInfoDto;
 import pl.patryklubik.courses.repository.CourseRepository;
 import pl.patryklubik.courses.model.dto.StudentDto;
 
@@ -25,10 +27,12 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final StudentServiceClient studentServiceClient;
+    private final RabbitTemplate rabbitTemplate;
 
-    public CourseServiceImpl(CourseRepository courseRepository, StudentServiceClient studentServiceClient) {
+    public CourseServiceImpl(CourseRepository courseRepository, StudentServiceClient studentServiceClient, RabbitTemplate rabbitTemplate) {
         this.courseRepository = courseRepository;
         this.studentServiceClient = studentServiceClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
 
@@ -91,6 +95,7 @@ public class CourseServiceImpl implements CourseService {
                     validateCourseStatusIsInactive(course);
                     course.setStatus(Course.Status.INACTIVE);
                     courseRepository.save(course);
+                    sendMessageToRabbitMq(course);
                     return ResponseEntity.ok().build();
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -125,6 +130,26 @@ public class CourseServiceImpl implements CourseService {
                     return ResponseEntity.ok().body(courseRepository.save(courseFromDb));
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    private void sendMessageToRabbitMq(Course course) {
+        NotificationInfoDto notificationInfo = createNotificationInfo(course);
+
+        rabbitTemplate.convertAndSend("enroll_finish", notificationInfo);
+    }
+
+    private NotificationInfoDto createNotificationInfo(Course course) {
+        List<@NotNull String> emailsMembers = getCourseMembersEmails(course);
+
+        return NotificationInfoDto.builder()
+                .courseCode(course.getCode())
+                .courseName(course.getName())
+                .courseDescription(course.getDescription())
+                .courseStartDate(course.getStartDate())
+                .courseEndDate(course.getEndDate())
+                .emails(emailsMembers)
+                .build();
+    }
+
 
     private void validateCourseNameExistsInDatabase(String name) {
         if(courseRepository.existsByName(name)) {
