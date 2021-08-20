@@ -50,6 +50,11 @@ public class CourseController {
         return courseService.addCourseMember(newMemberId, courseCode);
     }
 
+    @PostMapping("/{code}/finish-enroll")
+    ResponseEntity<?> finishEnroll(@PathVariable @Valid String code) {
+        return courseService.finishEnroll(code);
+    }
+
     @DeleteMapping("/{code}")
     ResponseEntity<?> deleteCourse(@PathVariable String code) {
         return courseService.deleteCourse(code);
@@ -58,10 +63,5 @@ public class CourseController {
     @PutMapping("/{code}")
     ResponseEntity<Course> putCourse(@PathVariable String code, @Valid @RequestBody Course course) {
         return courseService.putCourse(code, course);
-    }
-
-    @PatchMapping("/{code}")
-    ResponseEntity<Course> patchStudent(@PathVariable String code, @RequestBody Course course) {
-        return courseService.patchCourse(code, course);
     }
 }

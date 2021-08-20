@@ -24,9 +24,9 @@ public interface CourseService {
 
     ResponseEntity<Course> putCourse(String code, Course course);
 
-    ResponseEntity<Course> patchCourse(String code, Course course);
-
     ResponseEntity<List<StudentDto>> getCourseMembers(String code);
 
     ResponseEntity<Course> addCourseMember(Long newMemberId, String code);
+
+    ResponseEntity<?> finishEnroll(String code);
 }

@@ -4,7 +4,6 @@ package pl.patryklubik.courses.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ResponseStatusException;
 import pl.patryklubik.courses.model.Course;
 import pl.patryklubik.courses.model.CourseMember;
@@ -58,7 +57,6 @@ public class CourseServiceImpl implements CourseService {
                 .map(CourseMember::getEmail).collect(Collectors.toList());
     }
 
-
     public ResponseEntity<Course> addCourse(Course toCreate) {
 
         toCreate.validateCourse();
@@ -72,7 +70,7 @@ public class CourseServiceImpl implements CourseService {
     public ResponseEntity<Course> addCourseMember(Long newMemberId, String code) {
 
           return courseRepository.findById(code).map(course -> {
-            validateCourseStatus(course);
+            validateCourseStatusIsActive(course);
             StudentDto student = studentServiceClient.getStudentById(newMemberId);
             CourseMember courseMember = new CourseMember(student.getEmail());
             validateCourseMembersIsEnrolled(course, courseMember);
@@ -87,17 +85,14 @@ public class CourseServiceImpl implements CourseService {
          }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
-    private void validateCourseStatus(Course course) {
-        if(course.getStatus() != Course.Status.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course status is not ACTIVE");
-        }
-    }
-
-    private void validateCourseMembersIsEnrolled(Course course, CourseMember courseMemberToAdd) {
-        if(course.getCourseMembers().contains(courseMemberToAdd)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course member is already enrolled");
-        }
+    public ResponseEntity<?> finishEnroll(String code) {
+        return courseRepository.findById(code)
+                .map(course -> {
+                    validateCourseStatusIsInactive(course);
+                    course.setStatus(Course.Status.INACTIVE);
+                    courseRepository.save(course);
+                    return ResponseEntity.ok().build();
+                }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     public ResponseEntity<?> deleteCourse(String code) {
@@ -131,36 +126,27 @@ public class CourseServiceImpl implements CourseService {
                 }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public ResponseEntity<Course> patchCourse(String code, Course course) {
-
-        course.validateCourse();
-
-        return courseRepository.findById(code)
-                .map(courseFromDb -> {
-                    if (!ObjectUtils.isEmpty(course.getDescription())) {
-                        courseFromDb.setDescription(course.getDescription());
-                    }
-                    if (!ObjectUtils.isEmpty(course.getStartDate())) {
-                        courseFromDb.setEndDate(course.getStartDate());
-                    }
-                    if (!ObjectUtils.isEmpty(course.getEndDate())) {
-                        courseFromDb.setEndDate(course.getEndDate());
-                    }
-                    if (!ObjectUtils.isEmpty(course.getParticipantsLimit())) {
-                        courseFromDb.setParticipantsLimit(course.getParticipantsLimit());
-                    }
-                    if (!ObjectUtils.isEmpty(course.getParticipantsNumber())) {
-                        courseFromDb.setParticipantsNumber(course.getParticipantsNumber());
-                    }
-
-                    return ResponseEntity.ok().body(courseRepository.save(courseFromDb));
-                }).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-
     private void validateCourseNameExistsInDatabase(String name) {
         if(courseRepository.existsByName(name)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Course name is taken");
+        }
+    }
+
+    private void validateCourseStatusIsActive(Course course) {
+        if(course.getStatus() != Course.Status.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course status is not ACTIVE");
+        }
+    }
+
+    private void validateCourseMembersIsEnrolled(Course course, CourseMember courseMemberToAdd) {
+        if(course.getCourseMembers().contains(courseMemberToAdd)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course member is already enrolled");
+        }
+    }
+
+    private void validateCourseStatusIsInactive(Course course) {
+        if(course.getStatus() == Course.Status.INACTIVE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course was already INACTIVE");
         }
     }
 }
