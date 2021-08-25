@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ResponseStatusException;
+import pl.patryklubik.students.exception.ErrorInfo;
 import pl.patryklubik.students.model.Student;
 import pl.patryklubik.students.model.StudentRepository;
 
@@ -37,7 +38,7 @@ public class StudentServiceImpl implements StudentService {
         studentRepository.findById(id)
                 .ifPresent(student -> {
                     if (!Student.Status.ACTIVE.equals(student.getStatus())) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student is not active");
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorInfo.INACTIVE_STUDENT.getInfo());
                     }
                 });
 
@@ -100,7 +101,7 @@ public class StudentServiceImpl implements StudentService {
 
     private void validateStudentEmailExists(Student student) {
         if(studentRepository.existsByEmail(student.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is taken");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorInfo.EMAIL_IS_TAKEN.getInfo());
         }
     }
 }
