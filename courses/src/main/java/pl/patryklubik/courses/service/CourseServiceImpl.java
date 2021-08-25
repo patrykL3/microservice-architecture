@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import pl.patryklubik.courses.exception.ErrorInfo;
 import pl.patryklubik.courses.model.Course;
 import pl.patryklubik.courses.model.CourseMember;
 import pl.patryklubik.courses.model.dto.NotificationInfoDto;
@@ -153,25 +154,25 @@ public class CourseServiceImpl implements CourseService {
 
     private void validateCourseNameExistsInDatabase(String name) {
         if(courseRepository.existsByName(name)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course name is taken");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorInfo.NAME_TAKEN.getInfo());
         }
     }
 
     private void validateCourseStatusIsActive(Course course) {
         if(course.getStatus() != Course.Status.ACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course status is not ACTIVE");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorInfo.STATUS_IS_NOT_ACTIVE.getInfo());
         }
     }
 
     private void validateCourseMembersIsEnrolled(Course course, CourseMember courseMemberToAdd) {
         if(course.getCourseMembers().contains(courseMemberToAdd)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course member is already enrolled");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorInfo.COURSE_MEMBER_IS_ALREADY_ENROLLED.getInfo());
         }
     }
 
     private void validateCourseStatusIsInactive(Course course) {
         if(course.getStatus() == Course.Status.INACTIVE) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Course was already INACTIVE");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorInfo.COURSE_WAS_ALREADY_INACTIVE.getInfo());
         }
     }
 }
